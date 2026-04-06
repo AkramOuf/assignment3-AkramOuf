@@ -75,6 +75,7 @@ bool do_exec(int count, ...)
     {
         // child process
         execv(command[0], command);
+        exit(EXIT_FAILURE);
     }
     else
     {
@@ -132,12 +133,24 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         if(fd == -1)
         {
             success = false;
+            exit(EXIT_FAILURE);
         }
         else
         {
-            dup2(fd, STDOUT_FILENO);
-            close(fd);
+            int result = dup2(fd, STDOUT_FILENO);
+            if(result == -1)
+            {
+                success = false;
+                exit(EXIT_FAILURE);
+            }
+            result = close(fd);
+            if(result == -1)
+            {
+                success = false;
+                exit(EXIT_FAILURE);
+            }
             execv(command[0], command);
+            exit(EXIT_FAILURE);
         }
     }
     else
